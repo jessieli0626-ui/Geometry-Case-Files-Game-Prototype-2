@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Geometry Case Files</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f4efff;--white:#fff;--soft:#fbf9ff;--ink:#34324a;--muted:#77738c;
+  --line:#e6def7;--lav:#b9a7f4;--lav2:#7d67c8;--mint:#d9f8e7;--red:#ffe0e0;
+  --gold:#fff1c9;--gold2:#8a5d00;
+}
+body{margin:0;min-height:100vh;background:var(--bg);font-family:Arial,sans-serif;color:var(--ink);display:flex;align-items:center;justify-content:center;padding:24px}
+.app{width:100%;max-width:1120px;background:var(--white);border-radius:30px;overflow:hidden;box-shadow:0 24px 60px rgba(80,64,130,.16);border:1px solid rgba(255,255,255,.8)}
+.ribbon{background:#fff;border-bottom:1px solid var(--line);padding:16px 26px;display:flex;justify-content:space-between;gap:14px;align-items:center}
+.ribbon-title{font-weight:850;letter-spacing:.08em;text-transform:uppercase;font-size:13px;color:var(--lav2)}
+.ribbon-stats{display:flex;gap:9px;flex-wrap:wrap}
+.pill{background:var(--soft);border:1px solid var(--line);padding:7px 12px;border-radius:999px;font-size:13px;color:var(--ink)}
+.content{padding:28px}
+.screen{display:none}.screen.active{display:block}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:clamp(34px,5vw,56px);line-height:1;letter-spacing:-.04em;margin-bottom:12px}
+h2{font-size:28px;letter-spacing:-.025em;margin-bottom:8px}
+h3{font-size:17px;color:var(--lav2);margin-bottom:12px}
+.start{text-align:center;padding:38px 18px 42px}
+.subtitle{max-width:780px;margin:0 auto 24px;color:var(--muted);font-size:18px;line-height:1.6}
+button{border:none;background:var(--lav);color:#fff;padding:12px 17px;border-radius:16px;font-size:15px;cursor:pointer;transition:.18s ease;box-shadow:0 8px 20px rgba(125,103,200,.16)}
+button:hover:not(:disabled){transform:translateY(-2px);background:var(--lav2)}
+button:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+.ghost{background:#fff;color:var(--lav2);border:1px solid var(--line);box-shadow:none}
+.gold-btn{background:var(--gold);color:var(--gold2);box-shadow:none;border:1px solid #f0d88f}
+.button-row,.back-row,.tool-row{display:flex;gap:12px;flex-wrap:wrap}
+.button-row{justify-content:center;margin-top:18px}
+.back-row{justify-content:space-between;margin-bottom:20px}
+.tool-row{margin-top:15px}
+.menu-grid,.concept-grid,.shop-grid,.reward-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px}
+.concept-grid{grid-template-columns:repeat(2,1fr)}
+.menu-card,.concept-card,.shop-item,.reward-item{background:var(--soft);border:1px solid var(--line);border-radius:24px;padding:20px;text-align:left;box-shadow:0 12px 28px rgba(80,64,130,.07)}
+.menu-card p,.concept-card p,.shop-item p,.reward-item p{color:var(--muted);line-height:1.45}
+.owned{background:var(--mint);color:#215a40;border:1px solid #9be3ba;display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;margin-bottom:10px}
+.layout{display:grid;grid-template-columns:1.03fr .97fr;gap:22px;align-items:stretch}
+.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 12px 28px rgba(80,64,130,.08)}
+.diagram-card{min-height:500px}
+.diagram-box{background:var(--soft);border:1px solid var(--line);min-height:370px;border-radius:20px;display:flex;justify-content:center;align-items:center;padding:14px}
+svg{width:100%;max-height:350px}
+.case-header{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}
+.case-title-block p{color:var(--muted);margin:0}
+.difficulty{border-radius:999px;padding:7px 12px;font-size:13px;background:var(--soft);border:1px solid var(--line);white-space:nowrap;color:var(--muted)}
+.difficulty.hard{background:var(--gold);color:var(--gold2);border-color:#f0d88f;font-weight:750}
+.prompt{font-size:18px;line-height:1.5;margin:14px 0 16px}
+.choices{display:grid;gap:11px}
+.choice{width:100%;text-align:left;background:var(--soft);color:var(--ink);border:1px solid var(--line);box-shadow:none;line-height:1.35}
+.choice:hover:not(:disabled){background:#f0ebff}
+.choice.correct{background:var(--mint);border-color:#9be3ba;color:#215a40}
+.choice.wrong{background:var(--red);border-color:#f0b4b4;color:#8a3434}
+.panel{display:none;margin-top:14px;padding:15px;border-radius:18px;background:var(--soft);border:1px solid var(--line);line-height:1.5}
+.panel.show{display:block}
+.panel strong{color:var(--lav2)}
+.step-list{margin:8px 0 0 20px;padding:0}
+.step-list li{margin:8px 0}
+.progress{height:12px;background:var(--soft);border-radius:999px;border:1px solid var(--line);overflow:hidden;margin-top:12px}
+.progress-fill{height:100%;width:0%;background:var(--lav);transition:.25s ease}
+.mini-note{margin-top:12px;color:var(--muted);font-size:14px;line-height:1.45}
+.preview{height:42px;border-radius:14px;margin-bottom:10px;border:1px solid #ddd}
+.theme-rose{--bg:#fff0f6;--lav:#ff9fc5;--lav2:#c75683;--line:#ffd3e5;--soft:#fff8fb}
+.theme-mint{--bg:#eefcf5;--lav:#72d6a0;--lav2:#2f8b5a;--line:#c9f2dc;--soft:#f8fffb}
+.theme-sky{--bg:#eef7ff;--lav:#90c7ff;--lav2:#427fbd;--line:#cde7ff;--soft:#f8fcff}
+@media(max-width:880px){
+  body{padding:12px}.content{padding:18px}
+  .layout,.menu-grid,.concept-grid,.shop-grid,.reward-grid{grid-template-columns:1fr}
+  .ribbon{flex-direction:column;align-items:flex-start}
+  .diagram-card{min-height:auto}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="ribbon">
+    <div class="ribbon-title">Geometry Case Files · Visual Geometry Lab</div>
+    <div class="ribbon-stats">
+      <span class="pill" id="modePill">Mode: Menu</span>
+      <span class="pill" id="gemPill">Gems: 0</span>
+      <span class="pill" id="streakPill">Streak: 0</span>
+      <span class="pill" id="casePill">Cases: 0</span>
+      <span class="pill" id="hintPill">Hints: 0</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <section id="menuScreen" class="screen active">
+      <div class="start">
+        <h1>Geometry Case Files</h1>
+        <p class="subtitle">Solve generated geometry cases with labeled diagrams, visual highlights, hints, explanations, starter rewards, and a small shop system.</p>
+        <div class="menu-grid">
+          <div class="menu-card"><h3>Mixed Mode</h3><p>A mix of geometry topics with non-repeating generated cases.</p><button onclick="startPractice('mixed')">Start Mixed</button></div>
+          <div class="menu-card"><h3>Hard Mode</h3><p>Starter theorem-chain problems using Ceva and power of a point.</p><button class="gold-btn" onclick="startPractice('hard')">Start Hard</button></div>
+          <div class="menu-card"><h3>Concepts</h3><p>Choose one concept and practice only that type.</p><button class="ghost" onclick="showConcepts()">Open Concepts</button></div>
+          <div class="menu-card"><h3>Shop</h3><p>Buy a few color themes and starter boosts with Geometry Gems.</p><button class="ghost" onclick="showShop()">Open Shop</button></div>
+          <div class="menu-card"><h3>Rewards</h3><p>Claim starter rewards for solving, streaks, hard problems, and hints.</p><button class="ghost" onclick="showRewards()">Open Rewards</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="conceptScreen" class="screen">
+      <div class="back-row"><button class="ghost" onclick="showMenu()">← Back to Menu</button><button onclick="startPractice('mixed')">Mixed Practice</button></div>
+      <h2>Concept Menu</h2>
+      <p class="mini-note">These are the finished starter concepts for this version.</p>
+      <div class="concept-grid" id="conceptGrid"></div>
+    </section>
+
+    <section id="shopScreen" class="screen">
+      <div class="back-row"><button class="ghost" onclick="showMenu()">← Back to Menu</button><button onclick="startPractice('mixed')">Play</button></div>
+      <h2>Geometry Shop</h2>
+      <p class="mini-note">A small starter shop: a few themes and a few unique boosts.</p>
+      <div class="shop-grid" id="shopGrid"></div>
+    </section>
+
+    <section id="rewardScreen" class="screen">
+      <div class="back-row"><button class="ghost" onclick="showMenu()">← Back to Menu</button><button onclick="startPractice('mixed')">Play</button></div>
+      <h2>Rewards</h2>
+      <p class="mini-note">Claim rewards after reaching milestones.</p>
+      <div class="reward-grid" id="rewardGrid"></div>
+    </section>
+
+    <section id="gameScreen" class="screen">
+      <div class="back-row">
+        <button class="ghost" onclick="showMenu()">← Menu</button>
+        <button class="ghost" onclick="showConcepts()">Concepts</button>
+        <button class="ghost" onclick="showShop()">Shop</button>
+        <button class="ghost" onclick="showRewards()">Rewards</button>
+      </div>
+
+      <div class="case-header">
+        <div class="case-title-block"><h2 id="caseTitle">Case Title</h2><p id="caseTopic">Topic</p></div>
+        <div class="difficulty" id="difficultyBadge">Standard</div>
+      </div>
+      <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+
+      <div class="layout">
+        <div class="card diagram-card">
+          <h3>Visual Diagram</h3>
+          <div class="diagram-box" id="diagramBox"></div>
+          <p class="mini-note" id="diagramNote"></p>
+        </div>
+        <div class="card">
+          <h3>Question</h3>
+          <div class="prompt" id="prompt"></div>
+          <div class="choices" id="choices"></div>
+          <div class="tool-row">
+            <button class="ghost" id="hintBtn" onclick="showHint()">Hint</button>
+            <button class="ghost" id="solutionBtn" onclick="showSolution()" disabled>Step-by-Step Solution</button>
+            <button id="nextBtn" onclick="nextCase()" disabled>Next Case</button>
+          </div>
+          <div class="panel" id="hintPanel"></div>
+          <div class="panel" id="feedbackPanel"></div>
+          <div class="panel" id="solutionPanel"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+let currentCase=null;
+let mode='Menu';
+let gems=0, streak=0, totalCases=0, hintsUsed=0, correctTotal=0, hardCorrect=0, bestStreak=0;
+let answered=false, usedHintThisQuestion=false;
+let ownedItems=[], claimedRewards=[];
+let recentTypes=[], recentSlots=[];
+
+const conceptData=[
+  ['similarity','Similarity + Ratios','Scale factors, corresponding sides, and similar triangles.'],
+  ['circles','Circles','Chords, tangents, secants, and power of a point.'],
+  ['right','Right Triangles','Pythagorean triples and altitude-to-hypotenuse facts.'],
+  ['coordinate','Coordinate Geometry','Distance, slopes, and coordinate area.'],
+  ['area','Area Geometry','Medians, area ratios, and trapezoid midsegments.'],
+  ['angles','Angle Chasing','Triangle sums, exterior angles, and cyclic quadrilaterals.'],
+  ['counting','Geometric Counting','Grid squares, diagonals, and triangle counting.'],
+  ['proofs','Proof Reasons','SSS, SAS, CPCTC, and parallelogram facts.']
+];
+
+const shopItems=[
+  {id:'rose',name:'Rose Quartz Theme',cost:20,desc:'Soft blush color setting.',theme:'theme-rose',preview:['#fff0f6','#ff9fc5','#c75683']},
+  {id:'mint',name:'Mint Axiom Theme',cost:20,desc:'Calm green color setting.',theme:'theme-mint',preview:['#eefcf5','#72d6a0','#2f8b5a']},
+  {id:'sky',name:'Sky Compass Theme',cost:20,desc:'Clean blue color setting.',theme:'theme-sky',preview:['#eef7ff','#90c7ff','#427fbd']},
+  {id:'proofBoss',name:'Proof Boss Badge',cost:35,desc:'Boost: +1 gem on every correct answer.',boost:{type:'flatGem'}},
+  {id:'circleWizard',name:'Circle Wizard Badge',cost:40,desc:'Boost: +2 gems on circle problems.',boost:{type:'circleGem'}},
+  {id:'speedDemon',name:'Speed Demon Badge',cost:45,desc:'Boost: +1 gem if you solve without using a hint.',boost:{type:'noHint'}}
+];
+
+const rewards=[
+  {id:'first',name:'First Case Closed',desc:'Solve 1 problem correctly.',amount:10,ok:function(){return correctTotal>=1;}},
+  {id:'five',name:'Five Clean Solves',desc:'Solve 5 problems correctly.',amount:25,ok:function(){return correctTotal>=5;}},
+  {id:'hard2',name:'Hard Mode Spark',desc:'Solve 2 hard problems.',amount:35,ok:function(){return hardCorrect>=2;}},
+  {id:'streak4',name:'Four-Streak Flame',desc:'Reach a streak of 4.',amount:40,ok:function(){return bestStreak>=4;}},
+  {id:'cases15',name:'Case Grinder',desc:'Answer 15 total cases.',amount:45,ok:function(){return totalCases>=15;}},
+  {id:'hint5',name:'Curious Solver',desc:'Use 5 hints.',amount:20,ok:function(){return hintsUsed>=5;}}
+];
+
+function R(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function shuffle(arr){let a=arr.slice();for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));let t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function gcd(a,b){while(b){let t=b;b=a%b;a=t;}return Math.abs(a);}
+function choiceSet(answer, wrongs){
+  let ans=String(answer), list=[ans];
+  wrongs.map(String).forEach(function(x){if(!list.includes(x))list.push(x);});
+  let n=Number(answer), guard=0;
+  while(list.length<5 && guard<50){
+    if(Number.isFinite(n)){let x=String(n+R(-12,12));if(x!==ans && !list.includes(x))list.push(x);}
+    else {let x=ans+' option '+guard;if(!list.includes(x))list.push(x);}
+    guard++;
+  }
+  return list.slice(0,5);
+}
+function arrangeChoices(choices, answer){
+  let correct=String(answer);
+  let wrongs=shuffle(choices.map(String).filter(function(x){return x!==correct;})).slice(0,4);
+  while(wrongs.length<4) wrongs.push('Extra '+wrongs.length);
+  let slot;
+  do{slot=Math.floor(Math.random()*5);}while(recentSlots.length>=2 && recentSlots[0]===slot && recentSlots[1]===slot);
+  recentSlots.push(slot); if(recentSlots.length>2)recentSlots.shift();
+  let out=[],w=0;
+  for(let i=0;i<5;i++)out[i]=i===slot?correct:wrongs[w++];
+  return out;
+}
+function makeCase(obj){obj.answer=String(obj.answer);obj.choices=choiceSet(obj.answer,obj.wrongs);return obj;}
+
+function genSimilarity(){
+  let ab=R(4,9), scale=pick([2,3,4]), bc=R(5,12), de=ab*scale, ans=bc*scale;
+  return makeCase({type:'similarity',title:'Similarity Scale Factor',topic:'Similarity',diff:'Standard · 3 gems',points:3,
+    prompt:'Triangle ABC is similar to triangle DEF. Side AB is '+ab+', matching side DE is '+de+', and side BC is '+bc+'. What is matching side EF?',
+    answer:ans,wrongs:[ans+scale,ans-scale,ans+2,ans+6],
+    hint:'Compare matching sides AB and DE to find the scale factor.',
+    explain:'DE is '+scale+' times AB, so EF is '+scale+' times BC.',
+    steps:['Scale factor = DE ÷ AB = '+de+' ÷ '+ab+' = '+scale+'.','BC matches EF, so EF = '+bc+' × '+scale+'.','EF = '+ans+'.'],
+    diagram:diagramSimilarity(ab,de,bc),note:'Hover the colored sides to compare corresponding sides.'});
+}
+function genCircles(){
+  let a=pick([4,5,6,8]), b=pick([12,15,18,20]), c=pick([6,8,9,10]), prod=a*b;
+  while(prod%c!==0)c=pick([6,8,9,10]);
+  let ans=prod/c;
+  return makeCase({type:'circle',title:'Intersecting Chords',topic:'Circles',diff:'Standard · 3 gems',points:3,
+    prompt:'Two chords intersect inside a circle. One chord is split into pieces '+a+' and '+b+'. The other chord is split into pieces '+c+' and x. Find x.',
+    answer:ans,wrongs:[ans+2,ans-2,ans+4,ans+6],
+    hint:'For intersecting chords, multiply the two pieces of each chord.',
+    explain:'The products of the chord pieces are equal.',
+    steps:['Use the theorem: '+a+' × '+b+' = '+c+' × x.','Compute '+a+' × '+b+' = '+prod+'.','So '+c+'x = '+prod+'.','Divide by '+c+': x = '+ans+'.'],
+    diagram:diagramChords(a,b,c),note:'Hover either chord to highlight the pair of segment lengths.'});
+}
+function genRight(){
+  let triples=[[3,4,5],[5,12,13],[8,15,17]], tr=pick(triples), k=pick([2,3,4]);
+  let a=tr[0]*k,b=tr[1]*k,ans=tr[2]*k;
+  return makeCase({type:'right',title:'Right Triangle Hypotenuse',topic:'Right Triangles',diff:'Standard · 3 gems',points:3,
+    prompt:'A right triangle has legs '+a+' and '+b+'. Find the hypotenuse.',
+    answer:ans,wrongs:[ans-2,ans+2,ans+4,ans+6],
+    hint:'This is a scaled Pythagorean triple.',
+    explain:'The triangle is a '+tr[0]+'-'+tr[1]+'-'+tr[2]+' triangle scaled by '+k+'.',
+    steps:['The base triple is '+tr[0]+'-'+tr[1]+'-'+tr[2]+'.','The scale factor is '+k+'.','Hypotenuse = '+tr[2]+' × '+k+' = '+ans+'.'],
+    diagram:diagramRight(a,b),note:'The right angle marker shows the 90° angle.'});
+}
+function genCoordinate(){
+  let dx=pick([3,5,6,8,9]), dy=pick([4,6,8,12]), ans=dx*dx+dy*dy;
+  return makeCase({type:'coordinate',title:'Distance Squared',topic:'Coordinate Geometry',diff:'Standard · 3 gems',points:3,
+    prompt:'Two points differ by '+dx+' units horizontally and '+dy+' units vertically. Find the square of the distance between the points.',
+    answer:ans,wrongs:[ans+10,ans-10,ans+20,ans-20],
+    hint:'Distance squared is horizontal change squared plus vertical change squared.',
+    explain:'Use d² = dx² + dy².',
+    steps:['Horizontal change = '+dx+'. Vertical change = '+dy+'.','d² = '+dx+'² + '+dy+'².','d² = '+(dx*dx)+' + '+(dy*dy)+' = '+ans+'.'],
+    diagram:diagramCoordinate(dx,dy),note:'The horizontal and vertical changes create a right triangle.'});
+}
+function genArea(){
+  let area=pick([24,30,36,48,60,72]), ans=area/2;
+  return makeCase({type:'area',title:'Median Area Split',topic:'Area Geometry',diff:'Standard · 3 gems',points:3,
+    prompt:'A triangle has area '+area+'. A median divides it into two smaller triangles. What is the area of one smaller triangle?',
+    answer:ans,wrongs:[ans+4,ans-4,area,area/3],
+    hint:'A median splits the base into two equal parts.',
+    explain:'The two smaller triangles have equal bases and the same height.',
+    steps:['A median divides the triangle into two equal-area triangles.','Each smaller area is half of '+area+'.','Area = '+area+' ÷ 2 = '+ans+'.'],
+    diagram:diagramMedian(area,ans),note:'The median is highlighted and splits the area evenly.'});
+}
+function genAngles(){
+  let x=pick([25,30,35,40]), ext=2*x+15;
+  return makeCase({type:'angles',title:'Exterior Angle Equation',topic:'Angle Chasing',diff:'Standard · 3 gems',points:3,
+    prompt:'A triangle has remote interior angles x and x + 15°. The exterior angle is '+ext+'°. Find x.',
+    answer:x,wrongs:[x+5,x-5,x+10,x+15],
+    hint:'An exterior angle equals the sum of the two remote interior angles.',
+    explain:'Set x + (x + 15) equal to the exterior angle.',
+    steps:['Use exterior angle theorem: x + (x + 15) = '+ext+'.','Combine like terms: 2x + 15 = '+ext+'.','Subtract 15: 2x = '+(ext-15)+'.','Divide by 2: x = '+x+'.'],
+    diagram:diagramExterior(x,ext),note:'The exterior angle is marked outside the triangle.'});
+}
+function genCounting(){
+  let n=pick([7,8,9,10,12]), ans=n*(n-3)/2;
+  return makeCase({type:'counting',title:'Polygon Diagonals',topic:'Geometric Counting',diff:'Standard · 3 gems',points:3,
+    prompt:'How many diagonals does a convex '+n+'-gon have?',
+    answer:ans,wrongs:[ans+n,ans-n,ans+2,ans-2],
+    hint:'From each vertex, skip itself and its two neighbors.',
+    explain:'A polygon with n vertices has n(n − 3)/2 diagonals.',
+    steps:['Use the formula n(n − 3)/2.','Substitute n = '+n+'.','Diagonals = '+n+' × '+(n-3)+' ÷ 2 = '+ans+'.'],
+    diagram:diagramPolygon(n),note:'A few sample diagonals are shown, but the answer uses the formula.'});
+}
+function genProofs(){
+  let cases=[
+    makeCase({type:'proofs',title:'Proof Reason: SSS',topic:'Proof Reasons',diff:'Standard · 3 gems',points:3,prompt:'If AB ≅ DE, BC ≅ EF, and AC ≅ DF, which congruence reason proves △ABC ≅ △DEF?',answer:'SSS',wrongs:['SAS','ASA','AAS','HL'],hint:'All three pairs of sides match.',explain:'Three side pairs are congruent, so use SSS.',steps:['AB matches DE.','BC matches EF.','AC matches DF.','All three side pairs match, so △ABC ≅ △DEF by SSS.'],diagram:diagramProof(),note:'The tick marks show three matching side pairs.'}),
+    makeCase({type:'proofs',title:'Proof Reason: SAS',topic:'Proof Reasons',diff:'Standard · 3 gems',points:3,prompt:'If AB ≅ DE, AC ≅ DF, and ∠A ≅ ∠D, which congruence reason proves △ABC ≅ △DEF?',answer:'SAS',wrongs:['SSS','ASA','AAS','AA'],hint:'The angle is between the two given sides.',explain:'Two sides and the included angle are congruent, so use SAS.',steps:['AB matches DE.','AC matches DF.','The included angle ∠A matches ∠D.','Use SAS.'],diagram:diagramProof(),note:'The marked angle is between the two marked sides.'})
+  ];
+  return pick(cases);
+}
+function genHard(){
+  let cases=[
+    makeCase({type:'ceva',title:'Ceva Product',topic:'Hard Theorem Chain',diff:'Hard · 5 gems',points:5,prompt:'In triangle ABC, BD/DC = 2/3 and CE/EA = 5/4. What must AF/FB be so the three cevians are concurrent?',answer:'6/5',wrongs:['5/6','3/2','8/15','15/8'],hint:'Use Ceva: the product of the three ratios is 1.',explain:'Ceva says (BD/DC)(CE/EA)(AF/FB)=1.',steps:['Write Ceva: (2/3)(5/4)(AF/FB)=1.','Multiply the known ratios: 10/12 = 5/6.','So (5/6)(AF/FB)=1.','AF/FB=6/5.'],diagram:diagramCeva(),note:'The three cevians meet at one point.'}),
+    makeCase({type:'power',title:'Power of a Point',topic:'Hard Circle Theorem',diff:'Hard · 5 gems',points:5,prompt:'From point P, tangent PT and secant PAB are drawn. PA = 4 and AB = 21. Find PT.',answer:'10',wrongs:['8','9','12','14'],hint:'Use tangent² = external × whole secant.',explain:'The whole secant PB is 4 + 21 = 25.',steps:['Whole secant PB = PA + AB = 4 + 21 = 25.','Power of a point gives PT² = PA × PB.','PT² = 4 × 25 = 100.','PT = 10.'],diagram:diagramTangentSecant(4,21),note:'The tangent and secant are labeled from the same external point P.'})
+  ];
+  return pick(cases);
+}
+
+function getPool(){
+  if(mode==='hard') return [genHard,genCircles,genRight];
+  if(mode==='similarity') return [genSimilarity];
+  if(mode==='circles') return [genCircles];
+  if(mode==='right') return [genRight];
+  if(mode==='coordinate') return [genCoordinate];
+  if(mode==='area') return [genArea];
+  if(mode==='angles') return [genAngles];
+  if(mode==='counting') return [genCounting];
+  if(mode==='proofs') return [genProofs];
+  return [genSimilarity,genCircles,genRight,genCoordinate,genArea,genAngles,genCounting,genProofs];
+}
+function makeQuestion(){
+  let pool=getPool();
+  for(let i=0;i<12;i++){
+    let q=pick(pool)();
+    if(!recentTypes.includes(q.type)){
+      recentTypes.push(q.type);
+      if(recentTypes.length>4) recentTypes.shift();
+      return q;
+    }
+  }
+  let q=pick(pool)();
+  recentTypes.push(q.type);
+  if(recentTypes.length>4) recentTypes.shift();
+  return q;
+}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function showMenu(){mode='Menu';updateStats();showScreen('menuScreen');}
+function showConcepts(){renderConcepts();mode='Concepts';updateStats();showScreen('conceptScreen');}
+function showShop(){renderShop();mode='Shop';updateStats();showScreen('shopScreen');}
+function showRewards(){renderRewards();mode='Rewards';updateStats();showScreen('rewardScreen');}
+function startPractice(m){mode=m;streak=0;recentTypes=[];recentSlots=[];showScreen('gameScreen');nextCase();}
+function nextCase(){loadCase(makeQuestion());}
+function updateStats(){
+  document.getElementById('modePill').textContent='Mode: '+mode;
+  document.getElementById('gemPill').textContent='Gems: '+gems;
+  document.getElementById('streakPill').textContent='Streak: '+streak;
+  document.getElementById('casePill').textContent='Cases: '+totalCases;
+  document.getElementById('hintPill').textContent='Hints: '+hintsUsed;
+  let pf=document.getElementById('progressFill'); if(pf) pf.style.width=Math.min((streak%10)*10,100)+'%';
+}
+function renderConcepts(){
+  let g=document.getElementById('conceptGrid');g.innerHTML='';
+  conceptData.forEach(c=>{
+    let d=document.createElement('div');d.className='concept-card';
+    d.innerHTML='<h3>'+c[1]+'</h3><p>'+c[2]+'</p><button onclick="startPractice(\''+c[0]+'\')">Practice This</button>';
+    g.appendChild(d);
+  });
+}
+function renderShop(){
+  let g=document.getElementById('shopGrid');g.innerHTML='';
+  shopItems.forEach(item=>{
+    let owned=ownedItems.includes(item.id);
+    let d=document.createElement('div');d.className='shop-item';
+    let preview='';
+    if(item.preview){preview='<div class="preview" style="background:linear-gradient(90deg,'+item.preview[0]+','+item.preview[1]+','+item.preview[2]+')"></div>';}
+    let action='';
+    if(owned && item.theme) action='<button onclick="equipTheme(\''+item.theme+'\')">Equip</button>';
+    else if(owned) action='<span class="owned">Owned</span>';
+    else action='<button onclick="buyItem(\''+item.id+'\')">Buy for '+item.cost+' Gems</button>';
+    d.innerHTML=preview+(owned?'<span class="owned">Owned</span>':'')+'<h3>'+item.name+'</h3><p>'+item.desc+'</p><p class="mini-note">Cost: '+item.cost+' Gems</p>'+action;
+    g.appendChild(d);
+  });
+}
+function renderRewards(){
+  let g=document.getElementById('rewardGrid');g.innerHTML='';
+  rewards.forEach(r=>{
+    let claimed=claimedRewards.includes(r.id), can=r.ok();
+    let d=document.createElement('div');d.className='reward-item';
+    d.innerHTML=(claimed?'<span class="owned">Claimed</span>':'')+'<h3>'+r.name+'</h3><p>'+r.desc+'</p><p class="mini-note">Reward: '+r.amount+' Gems</p><button '+((claimed||!can)?'disabled':'')+' onclick="claimReward(\''+r.id+'\')">'+(claimed?'Claimed':can?'Claim Reward':'Locked')+'</button>';
+    g.appendChild(d);
+  });
+}
+function buyItem(id){
+  let item=shopItems.find(x=>x.id===id); if(!item)return;
+  if(ownedItems.includes(id))return;
+  if(gems<item.cost){alert('Not enough Geometry Gems yet.');return;}
+  gems-=item.cost; ownedItems.push(id);
+  if(item.theme){document.body.className=item.theme;}
+  updateStats();renderShop();
+}
+function equipTheme(theme){document.body.className=theme;renderShop();}
+function claimReward(id){
+  let r=rewards.find(x=>x.id===id);
+  if(!r||claimedRewards.includes(id)||!r.ok())return;
+  claimedRewards.push(id);gems+=r.amount;updateStats();renderRewards();
+}
+function getBoosts(){
+  let b={flat:0,circle:0,noHint:false};
+  ownedItems.forEach(id=>{
+    let item=shopItems.find(x=>x.id===id);
+    if(!item||!item.boost)return;
+    if(item.boost.type==='flatGem')b.flat+=1;
+    if(item.boost.type==='circleGem')b.circle+=2;
+    if(item.boost.type==='noHint')b.noHint=true;
+  });
+  return b;
+}
+function loadCase(c){
+  currentCase=c;answered=false;usedHintThisQuestion=false;totalCases++;
+  document.getElementById('caseTitle').textContent=c.title;
+  document.getElementById('caseTopic').textContent=c.topic;
+  document.getElementById('prompt').textContent=c.prompt;
+  document.getElementById('diagramBox').innerHTML=c.diagram;
+  document.getElementById('diagramNote').textContent=c.note;
+  let badge=document.getElementById('difficultyBadge');badge.textContent=c.diff;badge.className=c.points>=5?'difficulty hard':'difficulty';
+  let box=document.getElementById('choices');box.innerHTML='';
+  arrangeChoices(c.choices,c.answer).forEach(a=>{
+    let btn=document.createElement('button');
+    btn.className='choice';btn.textContent=a;btn.dataset.answer=a;
+    btn.onclick=function(){checkAnswer(this,this.dataset.answer);};
+    box.appendChild(btn);
+  });
+  ['hintPanel','feedbackPanel','solutionPanel'].forEach(id=>{let p=document.getElementById(id);p.className='panel';p.innerHTML='';});
+  document.getElementById('hintBtn').disabled=false;
+  document.getElementById('solutionBtn').disabled=true;
+  document.getElementById('nextBtn').disabled=true;
+  updateStats();
+}
+function showHint(){
+  if(!currentCase)return;
+  usedHintThisQuestion=true;hintsUsed++;
+  let p=document.getElementById('hintPanel');
+  p.innerHTML='<strong>Hint:</strong> '+currentCase.hint;
+  p.classList.add('show');
+  document.getElementById('hintBtn').disabled=true;
+  updateStats();
+}
+function checkAnswer(btn,a){
+  if(answered||!currentCase)return;
+  answered=true;
+  let selected=String(a), correct=String(currentCase.answer);
+  document.querySelectorAll('.choice').forEach(x=>{x.disabled=true;if(String(x.dataset.answer)===correct)x.classList.add('correct');});
+  let f=document.getElementById('feedbackPanel'), boost=getBoosts(), gain=currentCase.points;
+  if(selected===correct){
+    if(boost.flat)gain+=boost.flat;
+    if(boost.circle && currentCase.topic.toLowerCase().includes('circle'))gain+=boost.circle;
+    if(boost.noHint && !usedHintThisQuestion)gain+=1;
+    gems+=gain;streak++;correctTotal++;
+    if(currentCase.points>=5)hardCorrect++;
+    bestStreak=Math.max(bestStreak,streak);
+    btn.classList.add('correct');
+    f.innerHTML='<strong>Correct.</strong> +'+gain+' Geometry Gems. '+currentCase.explain;
+  }else{
+    streak=0;btn.classList.add('wrong');
+    f.innerHTML='<strong>Not quite.</strong> Correct answer: <strong>'+correct+'</strong>. '+currentCase.explain;
+  }
+  f.classList.add('show');
+  document.getElementById('solutionBtn').disabled=false;
+  document.getElementById('nextBtn').disabled=false;
+  updateStats();
+}
+function showSolution(){
+  if(!currentCase||!answered)return;
+  let p=document.getElementById('solutionPanel');
+  p.innerHTML='<strong>Step-by-step solution:</strong><ol class="step-list">'+currentCase.steps.map((s,i)=>'<li><strong>Step '+(i+1)+':</strong> '+s+'</li>').join('')+'</ol><p><strong>Final answer:</strong> '+currentCase.answer+'</p>';
+  p.classList.add('show');
+}
+
+function diagramSimilarity(ab,de,bc){
+  return '<svg viewBox="0 0 430 330"><style>.hl{transition:.2s}.hl:hover{stroke-width:9;opacity:.9}</style><polygon points="90,270 205,70 340,270" fill="none" stroke="#34324a" stroke-width="4"/><polygon points="130,270 205,140 295,270" fill="none" stroke="#7d67c8" stroke-width="4"/><line class="hl" x1="90" y1="270" x2="205" y2="70" stroke="#ff9fc5" stroke-width="5"/><line class="hl" x1="130" y1="270" x2="205" y2="140" stroke="#ff9fc5" stroke-width="5"/><line class="hl" x1="90" y1="270" x2="340" y2="270" stroke="#72d6a0" stroke-width="5"/><line class="hl" x1="130" y1="270" x2="295" y2="270" stroke="#72d6a0" stroke-width="5"/><text x="75" y="292">B</text><text x="205" y="58">A</text><text x="345" y="292">C</text><text x="126" y="294">E</text><text x="203" y="132">D</text><text x="298" y="294">F</text><text x="120" y="160">AB='+ab+'</text><text x="148" y="204">DE='+de+'</text><text x="185" y="292">BC='+bc+'</text><text x="196" y="253">EF=?</text></svg>';
+}
+function diagramChords(a,b,c){
+  return '<svg viewBox="0 0 430 330"><style>.chord{transition:.2s}.chord:hover{stroke-width:9}</style><circle cx="215" cy="165" r="112" fill="none" stroke="#34324a" stroke-width="4"/><line class="chord" x1="105" y1="165" x2="325" y2="165" stroke="#b9a7f4" stroke-width="6"/><line class="chord" x1="215" y1="55" x2="215" y2="275" stroke="#ff9fc5" stroke-width="6"/><circle cx="215" cy="165" r="5" fill="#34324a"/><text x="148" y="155">'+a+'</text><text x="260" y="155">'+b+'</text><text x="225" y="110">'+c+'</text><text x="225" y="225">x</text><text x="205" y="182">E</text></svg>';
+}
+function diagramRight(a,b){
+  return '<svg viewBox="0 0 430 330"><style>.side{transition:.2s}.side:hover{stroke-width:9}</style><polygon points="95,260 95,80 330,260" fill="none" stroke="#34324a" stroke-width="4"/><path d="M95 235 L120 235 L120 260" fill="none" stroke="#7d67c8" stroke-width="3"/><line class="side" x1="95" y1="260" x2="95" y2="80" stroke="#ff9fc5" stroke-width="5"/><line class="side" x1="95" y1="260" x2="330" y2="260" stroke="#72d6a0" stroke-width="5"/><line class="side" x1="95" y1="80" x2="330" y2="260" stroke="#b9a7f4" stroke-width="5"/><text x="62" y="172">'+a+'</text><text x="200" y="288">'+b+'</text><text x="218" y="152">?</text><text x="80" y="282">A</text><text x="82" y="72">B</text><text x="335" y="282">C</text></svg>';
+}
+function diagramCoordinate(dx,dy){
+  return '<svg viewBox="0 0 430 330"><style>.seg{transition:.2s}.seg:hover{stroke-width:9}</style><line x1="70" y1="270" x2="370" y2="270" stroke="#ddd" stroke-width="2"/><line x1="80" y1="290" x2="80" y2="40" stroke="#ddd" stroke-width="2"/><line class="seg" x1="110" y1="250" x2="310" y2="250" stroke="#72d6a0" stroke-width="5"/><line class="seg" x1="310" y1="250" x2="310" y2="90" stroke="#ff9fc5" stroke-width="5"/><line class="seg" x1="110" y1="250" x2="310" y2="90" stroke="#b9a7f4" stroke-width="5"/><circle cx="110" cy="250" r="5" fill="#34324a"/><circle cx="310" cy="90" r="5" fill="#34324a"/><text x="200" y="272">dx='+dx+'</text><text x="320" y="170">dy='+dy+'</text><text x="190" y="155">d²?</text></svg>';
+}
+function diagramMedian(area,half){
+  return '<svg viewBox="0 0 430 330"><polygon points="215,60 80,270 350,270" fill="rgba(255,220,232,.35)" stroke="#34324a" stroke-width="4"/><line x1="215" y1="60" x2="215" y2="270" stroke="#7d67c8" stroke-width="6"/><text x="205" y="50">A</text><text x="65" y="292">B</text><text x="355" y="292">C</text><text x="220" y="292">M</text><text x="105" y="180">area '+half+'</text><text x="245" y="180">area '+half+'</text><text x="156" y="310">total area '+area+'</text></svg>';
+}
+function diagramExterior(x,ext){
+  return '<svg viewBox="0 0 430 330"><polygon points="110,260 245,80 320,260" fill="none" stroke="#34324a" stroke-width="4"/><line x1="320" y1="260" x2="385" y2="260" stroke="#34324a" stroke-width="4"/><path d="M310 245 Q350 222 372 258" fill="none" stroke="#ff9fc5" stroke-width="4"/><text x="340" y="226">'+ext+'°</text><text x="132" y="240">x</text><text x="238" y="105">x+15°</text></svg>';
+}
+function diagramPolygon(n){
+  return '<svg viewBox="0 0 430 330"><polygon points="215,45 315,95 340,210 260,285 140,285 60,210 85,95" fill="none" stroke="#34324a" stroke-width="4"/><line x1="215" y1="45" x2="340" y2="210" stroke="#b9a7f4" stroke-width="4"/><line x1="315" y1="95" x2="140" y2="285" stroke="#ff9fc5" stroke-width="4"/><line x1="85" y1="95" x2="260" y2="285" stroke="#72d6a0" stroke-width="4"/><text x="190" y="165">n='+n+'</text></svg>';
+}
+function diagramProof(){
+  return '<svg viewBox="0 0 430 330"><polygon points="95,260 190,75 310,260" fill="none" stroke="#34324a" stroke-width="4"/><polygon points="130,260 230,75 350,260" fill="none" stroke="#7d67c8" stroke-width="4"/><text x="90" y="282">A</text><text x="185" y="68">B</text><text x="313" y="282">C</text><text x="125" y="282">D</text><text x="225" y="68">E</text><text x="355" y="282">F</text><text x="154" y="166">tick marks</text></svg>';
+}
+function diagramCeva(){
+  return '<svg viewBox="0 0 430 330"><polygon points="215,45 75,275 360,275" fill="none" stroke="#34324a" stroke-width="4"/><circle cx="215" cy="175" r="5" fill="#7d67c8"/><line x1="215" y1="45" x2="150" y2="275" stroke="#b9a7f4" stroke-width="4"/><line x1="75" y1="275" x2="260" y2="275" stroke="#ff9fc5" stroke-width="4"/><line x1="360" y1="275" x2="175" y2="115" stroke="#72d6a0" stroke-width="4"/><text x="208" y="37">A</text><text x="55" y="300">B</text><text x="365" y="300">C</text><text x="160" y="292">D</text><text x="260" y="292">E</text><text x="178" y="110">F</text></svg>';
+}
+function diagramTangentSecant(pa,ab){
+  return '<svg viewBox="0 0 430 330"><circle cx="250" cy="165" r="90" fill="none" stroke="#34324a" stroke-width="4"/><circle cx="85" cy="220" r="5" fill="#34324a"/><line x1="85" y1="220" x2="335" y2="140" stroke="#b9a7f4" stroke-width="5"/><line x1="85" y1="220" x2="245" y2="75" stroke="#ff9fc5" stroke-width="5"/><text x="72" y="245">P</text><text x="170" y="185">PA='+pa+'</text><text x="260" y="135">AB='+ab+'</text><text x="142" y="130">PT?</text><text x="245" y="70">T</text></svg>';
+}
+
+function runSelfTests(){
+  let oldMode=mode;
+  let modes=['mixed','hard','similarity','circles','right','coordinate','area','angles','counting','proofs'];
+  modes.forEach(function(m){
+    mode=m;
+    for(let i=0;i<10;i++){
+      let c=makeQuestion();
+      if(!c.choices.includes(c.answer)) throw new Error(c.title+' missing correct answer');
+      if(new Set(c.choices).size!==c.choices.length) throw new Error(c.title+' duplicate choices');
+      if(!c.steps || !c.steps.length) throw new Error(c.title+' missing steps');
+    }
+  });
+  mode=oldMode;
+  console.log('Geometry Case Files checks passed.');
+}
+try{runSelfTests();updateStats();}catch(err){
+  console.error(err);
+  document.body.innerHTML='<div style="font-family:Arial;padding:30px;color:#34324a"><h1>Startup error</h1><p>'+err.message+'</p></div>';
+}
+</script>
+</body>
+</html>
